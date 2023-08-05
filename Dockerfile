@@ -4,7 +4,6 @@ WORKDIR /app
 
 COPY package.json ./
 COPY pnpm-lock.yaml ./
-COPY .env ./
 COPY tsconfig.json ./
 
 COPY . .
