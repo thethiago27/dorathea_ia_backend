@@ -13,8 +13,6 @@ RUN pnpm install
 
 RUN npx prisma generate
 
-EXPOSE 3001
-
 CMD ["pnpm", "run", "start"]
 
 
