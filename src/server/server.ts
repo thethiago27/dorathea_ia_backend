@@ -21,10 +21,17 @@ app.register(cors, {
 })
 
 export const createServer = async () => {
-  const PORT = process.env.PORT || 3001
+  const PORT: number = Number(process.env.PORT) || 3001
+  const HOST: string = process.env.HOST || '0.0.0.0'
 
   try {
-    await app.listen(PORT)
+    await app.listen({ port: PORT, host: HOST }, (err, address) => {
+      if (err) {
+        console.error(err)
+        process.exit(1)
+      }
+      console.log(`Server listening at ${address}`)
+    })
   } catch (err) {
     console.error(err)
     process.exit(1)
