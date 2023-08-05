@@ -16,7 +16,10 @@ app.register(schemaValidation)
 app.register(routes)
 
 app.register(cors, {
-  origin: ['https://carbonoempregos.com.br', 'http://localhost:3000'],
+  origin: [
+    'https://whatsmytaylorswiftsong.vercel.app',
+    'http://localhost:3000',
+  ],
   credentials: true,
 })
 
