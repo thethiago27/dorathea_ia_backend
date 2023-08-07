@@ -9,7 +9,9 @@ import {
 
 const mixpanelPlugin: FastifyPluginAsync = fp(
   async (fastify: FastifyInstance, _) => {
-    const mixpanelClient = mixpanel.init(String(process.env.MIXPANEL_TOKEN))
+    const MIXPANEL_TOKEN: string = process.env.MIXPANEL_TOKEN || ''
+
+    const mixpanelClient = mixpanel.init(MIXPANEL_TOKEN)
 
     fastify.addHook(
       'onError',
@@ -23,12 +25,14 @@ const mixpanelPlugin: FastifyPluginAsync = fp(
     )
 
     fastify.addHook('onRequest', async (request: FastifyRequest, _) => {
-      mixpanelClient.track('Request URL', {
+      const eventData = {
         url: request.url,
         params: request.params,
         query: request.query,
         body: request.body,
-      })
+      }
+
+      mixpanelClient.track(`Request URL ${request.url}`, eventData)
     })
   },
 )
