@@ -1,6 +1,30 @@
-import { getPrediction as getModelPrediction } from '../models/song-predict'
 import { PrismaClient } from '@prisma/client'
 import { getSpotifyTrackDetails } from './spotify-track-details'
+import { getPrediction as getModelPrediction } from '../models/song-predict'
+
+interface PredictionValues {
+  mood: number
+  vibe: number
+  dance_type: number
+  acoustic_type: number
+}
+
+interface Song {
+  track_uri_id: string
+}
+
+interface SongDetails {
+  name: string
+  album: string
+  albumImage: string
+}
+
+interface Prediction {
+  id: string
+  name: string
+  image: string
+  album: string
+}
 
 export const createPrediction = async (
   data: number[],
@@ -9,16 +33,18 @@ export const createPrediction = async (
 ): Promise<string> => {
   const model = await getModelPrediction(data)
 
+  const predictionValues: PredictionValues = {
+    mood: data[0] as number,
+    vibe: data[1] as number,
+    dance_type: data[2] as number,
+    acoustic_type: data[3] as number,
+  }
+
   const savePrediction = await prisma.predictionValues.create({
-    data: {
-      mood: data[0] as number,
-      vibe: data[1] as number,
-      dance_type: data[2] as number,
-      acoustic_type: data[3] as number,
-    },
+    data: predictionValues,
   })
 
-  const song = await prisma.tracks.findUnique({
+  const song: Song | null = await prisma.tracks.findUnique({
     where: {
       id_mapping: Number(model),
     },
@@ -28,11 +54,12 @@ export const createPrediction = async (
     throw new Error('Song not found')
   }
 
-  const trackId = song.track_uri_id
+  const songDetails: SongDetails = await getSpotifyTrackDetails(
+    song.track_uri_id,
+    spotifyAccessCode,
+  )
 
-  const songDetails = await getSpotifyTrackDetails(trackId, spotifyAccessCode)
-
-  const prediction = await prisma.predictions.create({
+  const prediction: Prediction = await prisma.predictions.create({
     data: {
       name: songDetails.name,
       album: songDetails.album,
@@ -44,18 +71,11 @@ export const createPrediction = async (
   return prediction.id
 }
 
-interface Prediction {
-  id: string
-  name: string
-  image: string
-  album: string
-}
-
 export const getPrediction = async (
   id: string,
   prisma: PrismaClient,
 ): Promise<Prediction> => {
-  const prediction = await prisma.predictions.findUnique({
+  const prediction: Prediction | null = await prisma.predictions.findUnique({
     where: {
       id,
     },

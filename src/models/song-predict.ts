@@ -1,25 +1,33 @@
 import * as tf from '@tensorflow/tfjs-node'
 
 const modelPath = 'file://./tfjs-model/model.json'
+let cachedModel: tf.LayersModel | null = null
 
-export const modelInit = async () => {
+const loadModel = async (): Promise<tf.LayersModel> => {
+  if (!cachedModel) {
+    cachedModel = await tf.loadLayersModel(modelPath)
+  }
+  return cachedModel
+}
+
+export const modelInit = async (): Promise<void> => {
   try {
-    await tf.loadLayersModel(modelPath)
-  } catch (e: any) {
-    throw new Error(e)
+    await loadModel()
+  } catch (error: any) {
+    throw new Error(`Error initializing model: ${error.message}`)
   }
 }
 
 export const getPrediction = async (data: number[]): Promise<number> => {
   try {
-    const model = await tf.loadLayersModel(modelPath)
-    const tensor = tf.tensor2d([data])
-    const prediction = model.predict(tensor) as tf.Tensor
+    const model: tf.LayersModel = await loadModel()
+    const tensor: tf.Tensor2D = tf.tensor2d([data])
+    const prediction: tf.Tensor = model.predict(tensor) as tf.Tensor
 
     const predictionData = await prediction.data()
 
     return Math.floor(Number(predictionData))
-  } catch (e: any) {
-    throw new Error(e)
+  } catch (error: any) {
+    throw new Error(`Error getting prediction: ${error.message}`)
   }
 }

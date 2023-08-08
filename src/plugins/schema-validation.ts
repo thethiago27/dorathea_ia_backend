@@ -1,16 +1,18 @@
-import fp from 'fastify-plugin'
 import { FastifyInstance } from 'fastify'
 import { ObjectSchema } from 'joi'
+import fp from 'fastify-plugin'
 
 const schemaValidationPlugin = fp(async (fastify: FastifyInstance) => {
   fastify.setValidatorCompiler(
     ({ schema }: { schema: ObjectSchema }) =>
-      (data) => {
+      async (data) => {
         const schemaIsOptional = schema?._flags?.presence === 'optional'
 
         if (schemaIsOptional && !data) return data
 
-        const validation: any = schema.validate(data, { abortEarly: false })
+        const validation = await schema.validateAsync(data, {
+          abortEarly: false,
+        })
         if (
           validation.value === null ||
           (validation.value && !Object.keys(validation.value).length)

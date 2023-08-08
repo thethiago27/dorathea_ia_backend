@@ -34,7 +34,7 @@ export const getSpotifyTrackDetails = async (
 
     const { album, name } = response.data
 
-    const albumImage = album.images[1]?.url || ''
+    const albumImage: string = album.images[1]?.url || ''
 
     return {
       album: album.name,
@@ -43,6 +43,6 @@ export const getSpotifyTrackDetails = async (
     }
   } catch (error) {
     console.error('Error fetching Spotify track details:', error)
-    throw new Error('Failed to fetch Spotify track details.')
+    throw new Error('Failed to fetch Spotify track details')
   }
 }

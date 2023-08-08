@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client'
-import axios, { AxiosRequestConfig } from 'axios'
+import axios from 'axios'
 
 interface SpotifyAuthenticationTokenResponse {
   access_token: string
@@ -10,40 +10,43 @@ interface SpotifyAuthenticationTokenResponse {
 export const getSpotifyAuthenticationToken = async (
   prisma: PrismaClient,
 ): Promise<string> => {
-  const auth: string = Buffer.from(
-    `${process.env.SPOTIFY_CLIENT_ID}:${process.env.SPOTIFY_CLIENT_SECRET}`,
-  ).toString('base64')
+  const authCredentials = `${process.env.SPOTIFY_CLIENT_ID}:${process.env.SPOTIFY_CLIENT_SECRET}`
+  const authEncoded = Buffer.from(authCredentials).toString('base64')
 
   const headers = {
-    Authorization: `Basic ${auth}`,
+    Authorization: `Basic ${authEncoded}`,
     'Content-Type': 'application/x-www-form-urlencoded',
   }
 
-  const authOptions: AxiosRequestConfig = {
+  const authOptions = {
     headers,
-    method: 'POST',
+    method: 'POST' as const,
     url: 'https://accounts.spotify.com/api/token',
-    data: {
+    data: new URLSearchParams({
       grant_type: 'client_credentials',
-    },
-    responseType: 'json',
+    }).toString(),
   }
 
-  const response = await axios.request<SpotifyAuthenticationTokenResponse>(
-    authOptions,
-  )
+  try {
+    const response = await axios.request<SpotifyAuthenticationTokenResponse>(
+      authOptions,
+    )
 
-  const token: string = response.data.access_token
+    const { access_token, expires_in } = response.data
 
-  const expiresTime = new Date().getTime() + response.data.expires_in * 1000
-  const expires_in = new Date(expiresTime)
+    const expiresTime = new Date().getTime() + expires_in * 1000
+    const expires_in_date = new Date(expiresTime)
 
-  await prisma.spotifyToken.create({
-    data: {
-      token,
-      expires_in,
-    },
-  })
+    await prisma.spotifyToken.create({
+      data: {
+        token: access_token,
+        expires_in: expires_in_date,
+      },
+    })
 
-  return token
+    return access_token
+  } catch (error) {
+    console.error('Error getting Spotify authentication token:', error)
+    throw new Error('Unable to get Spotify authentication token')
+  }
 }

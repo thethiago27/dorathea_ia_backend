@@ -3,7 +3,7 @@ import songPredict from '../controllers/create-prediction'
 import { predictRequestSchema } from '../models/predict-request'
 import findPrediction from '../controllers/find-prediction'
 
-export default async function (fastify: FastifyInstance) {
+export default async function (fastify: FastifyInstance): Promise<void> {
   fastify.post(
     '/prediction',
     {
