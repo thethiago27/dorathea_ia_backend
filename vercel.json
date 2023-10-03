@@ -9,7 +9,7 @@
   "rewrites": [
     {
       "source": "/(.*)",
-      "destination": "build/src/main.js"
+      "destination": "build/src/index.js"
     }
   ],
   "headers": [
