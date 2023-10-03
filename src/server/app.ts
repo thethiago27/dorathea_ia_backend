@@ -46,7 +46,7 @@ export class App implements ServerInterface {
     const HOST: string = process.env.HOST || '0.0.0.0'
 
     try {
-      await this.server.listen({ port: PORT, host: HOST }, (err, address) => {
+      this.server.listen({ port: PORT, host: HOST }, (err, address) => {
         if (err) process.exit(1)
         console.log(`Server listening at ${address}`)
       })
