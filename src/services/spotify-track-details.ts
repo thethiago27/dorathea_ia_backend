@@ -20,20 +20,28 @@ interface SpotifyTrackDetails {
   name: string
 }
 
+const SPOTIFY_API_TRACK_ENDPOINT = 'https://api.spotify.com/v1/tracks/'
+const BEARER = 'Bearer '
+
+export async function getAxiosResponse(
+  trackId: string,
+  spotifyAuthToken: string,
+): Promise<AxiosResponse<SpotifyTrackDetailsResponse>> {
+  return await axios.get(`${SPOTIFY_API_TRACK_ENDPOINT}${trackId}`, {
+    headers: {
+      Authorization: `${BEARER}${spotifyAuthToken}`,
+    },
+  })
+}
+
 export const getSpotifyTrackDetails = async (
   trackId: string,
-  spotifyAccessCode: string,
+  spotifyAuthToken: string,
 ): Promise<SpotifyTrackDetails> => {
   try {
-    const response: AxiosResponse<SpotifyTrackDetailsResponse> =
-      await axios.get(`https://api.spotify.com/v1/tracks/${trackId}`, {
-        headers: {
-          Authorization: `Bearer ${spotifyAccessCode}`,
-        },
-      })
-
-    const { album, name } = response.data
-
+    const response = await getAxiosResponse(trackId, spotifyAuthToken)
+    const spotifyTrackDetails = response.data
+    const { album, name } = spotifyTrackDetails
     const albumImage: string = album.images[1]?.url || ''
 
     return {
